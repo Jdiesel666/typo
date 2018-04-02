@@ -10,10 +10,29 @@ describe Admin::CategoriesController do
     henri = Factory(:user, :login => 'henri', :profile => Factory(:profile_admin, :label => Profile::ADMIN))
     request.session = { :user => henri.id }
   end
-
+  
   it "test_index" do
     get :index
     assert_response :redirect, :action => 'index'
+  end
+
+  describe "test_create" do
+    before(:each) do
+      get :new
+    end
+    
+    it 'should render template new' do
+      assert_template 'new'
+      assert_tag :tag => "table",
+        :attributes => { :id => "category_container" }
+    end
+
+    it 'should create a new category' do
+      attributes = {:name => "test1", :keywords => "testKey1", :permalink => "general1", :description => "test1Body"}
+      post :edit, :category => attributes
+      expect(assigns(:category)).should_not be_nil
+      expect(flash[:notice]).to eq("Category was successfully saved.")
+    end
   end
 
   describe "test_edit" do
@@ -32,13 +51,25 @@ describe Admin::CategoriesController do
       assert assigns(:category).valid?
       assigns(:categories).should_not be_nil
     end
+  
+    it 'should change category' do
+      category = Category.create(:name => "test1", :keywords => "testKey1", :permalink => "general1", :description => "test1Body")
+      changed_attributes = {:name => "test2", :keywords => "testKey2", :permalink => "general2", :description => "test2Body"}
+      post :edit, :id => category.id, :category => changed_attributes
+      category = Category.find(category.id)
+    end  
+    
+    it "test_update" do
+      post :edit, :id => Factory(:category).id
+      assert_response :redirect, :action => 'index'
+    end
   end
 
   it "test_update" do
-    post :edit, :id => Factory(:category).id
-    assert_response :redirect, :action => 'index'
-  end
-
+      post :edit, :id => Factory(:category).id
+      assert_response :redirect, :action => 'index'
+   end
+    
   describe "test_destroy with GET" do
     before(:each) do
       test_id = Factory(:category).id

@@ -56,4 +56,14 @@ class Admin::CategoriesController < Admin::BaseController
     redirect_to :action => 'new'
   end
   
+  def create_or_find(id)
+  # edit case
+    if id
+      @category = Category.find(id)
+      @category.attributes = params[:category]
+    # new case
+    elsif request.post?
+      @category = Category.create(params[:category])
+    end
+  end
 end
